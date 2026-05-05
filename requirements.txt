@@ -1,0 +1,9 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+python-dotenv>=1.0.1
+pydantic>=2.8.0
+google-genai>=1.0.0
+pinecone>=5.1.0
+langchain-core>=0.3.0
+langchain-text-splitters>=0.3.0

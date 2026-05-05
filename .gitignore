@@ -1,0 +1,11 @@
+.env
+.DS_Store
+__pycache__/
+*.py[cod]
+venv/
+chroma_db/
+.render/
+/tmp/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
