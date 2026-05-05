@@ -2,20 +2,78 @@
 
 FinSight is a financial document analysis workspace for uploaded reports, filings, spreadsheets, and scanned documents. It parses documents with Gemini, embeds report chunks with Gemini embeddings, stores vectors in Pinecone, and answers questions with hybrid retrieval plus structured metric extraction.
 
-The project is built to feel like a financial analyst tool rather than a generic chatbot: answers include source passages, trace metadata, and machine-readable metrics when the question asks for a financial value.
+The system is designed to behave like a financial analyst tool rather than a generic chatbot: answers include source passages, trace metadata, and machine-readable metrics when the question asks for a financial value.
+
+---
+
+## Why FinSight?
+
+Financial documents are complex, table-heavy, and difficult to query. Generic RAG systems often hallucinate, miss key tables, or fail to extract structured financial metrics.
+
+FinSight solves this by combining:
+
+* Hybrid retrieval (semantic + lexical search)
+* Deterministic table-based metric extraction
+* Source-grounded answers with traceability
+* Structured financial outputs for downstream analysis
+
+---
+
+## Key Capability: Structured Financial Extraction
+
+FinSight goes beyond text answers by extracting structured financial metrics directly from documents.
+
+Supported metrics include:
+
+* Revenue / Sales to Customers
+* Income Before Tax
+* Net Income
+* Gross Profit
+
+Each extracted metric includes:
+
+* metric name
+* numeric value
+* raw value
+* unit
+* period
+* year
+* source chunk id
+* source document metadata
+
+This enables:
+
+* Accurate financial analysis
+* UI metric cards
+* Ratio calculations
+* Reliable evaluation pipelines
+
+---
 
 ## Features
 
-- Upload PDF, image, Word, Excel, or CSV files.
-- Parse machine-readable and scanned documents using Gemini multimodal parsing.
-- Preserve financial tables as markdown where possible.
-- Chunk documents with metadata for section, heading, table status, and chunk id.
-- Embed chunks with `gemini-embedding-2`.
-- Store vectors in Pinecone by document namespace.
-- Retrieve with hybrid search: Pinecone vector search plus local BM25.
-- Extract structured metrics such as revenue, income before tax, net income, and gross profit.
-- Return answers with `metrics`, `sources`, and `trace`.
-- Next.js frontend with upload workflow, chat workspace, metric cards, source inspector, and trace view.
+* Upload PDF, image, Word, Excel, or CSV files.
+* Parse machine-readable and scanned documents using Gemini multimodal parsing.
+* Preserve financial tables as markdown where possible.
+* Chunk documents with metadata for section, heading, table status, and chunk id.
+* Embed chunks with `gemini-embedding-2`.
+* Store vectors in Pinecone by document namespace.
+* Retrieve with hybrid search: Pinecone vector search plus local BM25.
+* Extract structured metrics such as revenue, income before tax, net income, and gross profit.
+* Return answers with `metrics`, `sources`, and `trace`.
+* Next.js frontend with upload workflow, chat workspace, metric cards, source inspector, and trace view.
+
+---
+
+## How FinSight is Different
+
+* No hallucination: strict grounding and deterministic extraction
+* Financial-aware: understands tables and financial metrics
+* Hybrid retrieval: combines vector search with BM25 lexical search
+* Traceability: every answer includes sources and reasoning trace
+* Structured outputs: returns machine-readable financial data
+
+---
 
 ## Architecture
 
@@ -39,29 +97,33 @@ Chat
   -> answer + metrics + sources + trace
 ```
 
+---
+
 ## Tech Stack
 
-Backend:
+### Backend
 
-- Python
-- FastAPI
-- Google Gen AI SDK
-- Gemini `gemini-3.1-flash-lite-preview`
-- Gemini `gemini-embedding-2`
-- Pinecone
-- LangChain document utilities
+* Python
+* FastAPI
+* Google Gen AI SDK
+* Gemini `gemini-3.1-flash-lite-preview`
+* Gemini `gemini-embedding-2`
+* Pinecone
+* LangChain document utilities
 
-Frontend:
+### Frontend
 
-- Next.js
-- React
-- CSS
-- lucide-react
+* Next.js
+* React
+* CSS
+* lucide-react
 
-Deployment:
+### Deployment
 
-- Render config for the FastAPI backend
-- Frontend can deploy separately on Vercel or Netlify
+* Render for FastAPI backend
+* Vercel or Netlify for frontend
+
+---
 
 ## Repository Structure
 
@@ -87,6 +149,8 @@ requirements.txt
 render.yaml
 .env.example
 ```
+
+---
 
 ## Environment Variables
 
@@ -115,11 +179,13 @@ PINECONE_NAMESPACE=finsight_docs
 FINSIGHT_STORAGE_DIR=/tmp/finsight_storage
 ```
 
-For the frontend, create `frontend/.env.local`:
+Frontend environment:
 
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
+
+---
 
 ## Local Setup
 
@@ -163,6 +229,8 @@ Frontend runs at:
 http://localhost:3000
 ```
 
+---
+
 ## API
 
 ### Health
@@ -170,6 +238,8 @@ http://localhost:3000
 ```http
 GET /api/health
 ```
+
+---
 
 ### Upload Document
 
@@ -195,7 +265,9 @@ Example response:
 }
 ```
 
-The latest uploaded document becomes the active document for chat.
+The most recently uploaded document becomes the active document for chat.
+
+---
 
 ### Chat
 
@@ -259,27 +331,38 @@ Example response:
 }
 ```
 
-## Structured Metric Extraction
+---
 
-The backend currently extracts common table metrics before calling the LLM:
+## Example Queries
 
-- Revenue
-- Income Before Tax
-- Net Income
-- Gross Profit
+* What was the revenue for Q1 2026?
+* What is the income before tax?
+* What are the sales to customers values?
+* Compare sales between 2025 and 2026
 
-Each extracted metric includes:
+---
 
-- metric name
-- numeric value
-- raw value
-- unit
-- period
-- year
-- source chunk id
-- source document metadata
+## Current Limitations
 
-This makes downstream UI cards, ratio calculations, evaluations, and dashboards easier to build.
+* Chat operates on the most recently uploaded document.
+* Multi-document comparison is not implemented yet.
+* BM25 uses local storage (`/tmp/finsight_storage`), which is ephemeral on free hosting tiers.
+* Structured extraction covers common financial metrics but is not a full financial statement parser.
+* Evaluation benchmarks and automated scoring are not yet implemented.
+
+---
+
+## Roadmap
+
+* Document list and active document selection
+* Multi-document comparison
+* Expanded structured metric extraction
+* Financial ratio calculations
+* Evaluation dataset with ground-truth answers
+* Improved ingestion error handling
+* Streaming responses and trace visualization
+
+---
 
 ## Deployment
 
@@ -289,7 +372,7 @@ This makes downstream UI cards, ratio calculations, evaluations, and dashboards 
 startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
 ```
 
-Set Render environment variables:
+Set environment variables:
 
 ```text
 GEMINI_API_KEY
@@ -298,25 +381,8 @@ PINECONE_INDEX_NAME=finsight
 FINSIGHT_STORAGE_DIR=/tmp/finsight_storage
 ```
 
-Deploy the frontend separately on Vercel or Netlify and set:
+Deploy the frontend on Vercel or Netlify and set:
 
 ```text
 NEXT_PUBLIC_API_BASE_URL=<your backend URL>
 ```
-
-## Current Limitations
-
-- Chat uses the latest uploaded document as the active document.
-- Multi-document selection and cross-document comparison are not implemented yet.
-- BM25 uses a local manifest in `/tmp/finsight_storage`; on free Render instances this storage is ephemeral.
-- Structured metric extraction covers common financial metrics but is not yet a full financial statement parser.
-- Evaluation benchmarks and automated scoring are planned but not yet implemented.
-
-## Roadmap
-
-- Document list and active document selection.
-- Multi-document comparison.
-- More structured metrics and ratio calculations.
-- Evaluation dataset with expected values and source ids.
-- Better ingestion error handling for malformed files.
-- Streaming trace and answer responses.
